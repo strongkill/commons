@@ -71,4 +71,25 @@ public class RequestUtil {
 		return params;
 	}
 
+	public static String getParams(HttpServletRequest request) {
+		String params = "";
+		for (Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
+			if (entry.getValue().length == 1) {
+				if (StringUtil.hasText(entry.getValue()[0])) {
+					params += ";" + entry.getKey() + ":" + entry.getValue()[0];
+				}
+			} else if (entry.getValue().length > 1) {
+				params += ";" + entry.getKey() + ":[" + entry.getValue()[0];
+				for (int i = 1; i < entry.getValue().length; i++) {
+					params += "," + entry.getValue()[i];
+				}
+				params += "]";
+			}
+		}
+		if (params.length() > 0) {
+			params = params.substring(1);
+		}
+		return params;
+	}
+
 }
