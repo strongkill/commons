@@ -65,4 +65,19 @@ public class PropertiesUtil {
 		}
 		return result;
 	}
+
+	public static boolean getBoolean(Properties prop, String name, boolean def) {
+		boolean result = def;
+		String value = get(prop, name);
+		if (value != null) {
+			value = value.trim().toLowerCase();
+			if ("true".equals(value)) {
+				result = true;
+			} else if ("false".equals(value)) {
+				result = false;
+			}
+		}
+
+		return result;
+	}
 }
