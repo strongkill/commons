@@ -134,6 +134,9 @@ public class ThreadTimer<T extends Runnable> implements Runnable {
 
 	@Override
 	public void run() {
+		if (taskName == null || "".equals(taskName.trim())) {
+			taskName = Thread.currentThread().getName();
+		}
 		try {
 			if (timeoutSec > 0) {
 				future.get(timeoutSec, TimeUnit.SECONDS);
@@ -150,7 +153,6 @@ public class ThreadTimer<T extends Runnable> implements Runnable {
 				if (errorHandler != null) {
 					errorHandler.caught(taskName, task, e);
 				} else {
-					taskName = taskName == null || "".equals(taskName.trim()) ? "unknown" : taskName;
 					LOGGER.error(MessageFormat.format("Error: TaskName:{0}, Timeout:{1} Sec", taskName, timeoutSec), e);
 				}
 			}
