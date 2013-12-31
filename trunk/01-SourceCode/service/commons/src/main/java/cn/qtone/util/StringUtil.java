@@ -3,9 +3,6 @@ package cn.qtone.util;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.builder.ToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
-
 /**
  * 字符串处理工具类
  * 
@@ -163,10 +160,6 @@ public class StringUtil {
 		}
 
 		return equals;
-	}
-
-	public static String beanToString(Object bean) {
-		return ToStringBuilder.reflectionToString(bean, ToStringStyle.MULTI_LINE_STYLE);
 	}
 
 }
