@@ -18,13 +18,13 @@ public class ColumnAndAliasConverter {
 	 * user_name(忽略大小写) => userName
 	 * </pre>
 	 * 
-	 * @param colName 字段名(下划线"_"连接)
+	 * @param column 字段名(下划线"_"连接)
 	 * @return 别名(驼峰命名)
 	 */
-	public static String columnToAlias(String colName) {
+	public static String columnToAlias(String column) {
 		StringBuffer buf = new StringBuffer();
-		if (colName != null && !"".equals(colName)) {
-			String[] strArr = colName.split("_");
+		if (column != null && !"".equals(column)) {
+			String[] strArr = column.split("_");
 
 			buf.append(strArr[0].toLowerCase());
 

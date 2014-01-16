@@ -52,4 +52,12 @@ public class ExtMap extends HashMap<String, Object> {
 		}
 		return (T) obj;
 	}
+
+	public ExtMap asAliasMap() {
+		ExtMap map = new ExtMap(size());
+		for (java.util.Map.Entry<String, Object> entry : entrySet()) {
+			map.put(ColumnAndAliasConverter.columnToAlias(entry.getKey()), entry.getValue());
+		}
+		return map;
+	}
 }
