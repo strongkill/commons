@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
  * 
  * @author Junson
  */
-public class AliasUtil {
+public class ColumnAndAliasConverter {
 
 	/**
 	 * 字段别名转换
@@ -21,7 +21,7 @@ public class AliasUtil {
 	 * @param colName 字段名(下划线"_"连接)
 	 * @return 别名(驼峰命名)
 	 */
-	public static String colName2Alias(String colName) {
+	public static String columnToAlias(String colName) {
 		StringBuffer buf = new StringBuffer();
 		if (colName != null && !"".equals(colName)) {
 			String[] strArr = colName.split("_");
@@ -48,7 +48,7 @@ public class AliasUtil {
 	 * @param alias 别名(驼峰命名)
 	 * @return 字段名(下划线"_"连接)
 	 */
-	public static String alias2ColName(String alias) {
+	public static String aliasToColumn(String alias) {
 		if (alias != null && !"".equals(alias) && alias.matches(".*[a-z].*")) {
 			StringBuffer buf = null;
 
@@ -78,18 +78,18 @@ public class AliasUtil {
 	 * @param alias 别名字符串(多个用","分隔)
 	 * @return 字段名字符串(多个用","分隔)
 	 */
-	public static String alias2ColNames(String alias) {
+	public static String aliasToColumns(String alias) {
 		String[] array = alias.split(",");
 		for (int i = 0; i < array.length; i++) {
-			array[i] = alias2ColName(array[i]);
+			array[i] = aliasToColumn(array[i]);
 		}
 		return ArrayUtil.toString(array);
 	}
 
 	public static void main(String[] args) {
-		System.out.println(colName2Alias("AAA_BBB_CCC"));
-		System.out.println(alias2ColName("aaaBbbCcc"));
-		System.out.println(alias2ColNames("aaBb,ccDd"));
+		System.out.println(columnToAlias("AAA_BBB_CCC"));
+		System.out.println(aliasToColumn("aaaBbbCcc"));
+		System.out.println(aliasToColumns("aaBb,ccDd"));
 	}
 
 }
