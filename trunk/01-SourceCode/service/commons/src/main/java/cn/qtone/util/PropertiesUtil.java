@@ -8,6 +8,14 @@ public class PropertiesUtil {
 		return get(prop, name, true);
 	}
 
+	public static String get(Properties prop, String name, String def) {
+		String value = get(prop, name);
+		if (value == null || "".equals(value)) {
+			value = def;
+		}
+		return value;
+	}
+
 	public static String get(Properties prop, String name, boolean allowNull) {
 		String value = prop.getProperty(name);
 		if (!allowNull && (value == null || "".equals(value))) {
