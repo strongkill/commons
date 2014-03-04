@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
  * 队列任务
  * @param <DATA> 泛型,process处理的对象类型
  */
-public class QueueTask<DATA> extends Thread {
+public class QueueTask<DATA> {
 	private static final Logger logger = LoggerFactory.getLogger(QueueTask.class);
 
 	private Queue<DATA> queue = new ConcurrentLinkedQueue<DATA>();
@@ -24,8 +24,8 @@ public class QueueTask<DATA> extends Thread {
 	/** 是否异步处理,默认:false */
 	private boolean async = false;
 
-	/** 任务执行时间间隔,单位:秒, 默认:0 */
-	private int interval = 0;
+	/** 任务执行时间间隔,单位:秒, 默认:1 */
+	private int interval = 1;
 
 	/** 每次处理数据最小记录数, 默认:1 */
 	private int minBatchSize = 1;
@@ -45,42 +45,43 @@ public class QueueTask<DATA> extends Thread {
 	/** 线程是否已停止 */
 	private boolean stoped = false;
 
-	public QueueTask() {
+	private QueueTask() {
 	}
 
-	@Override
-	public synchronized void run() {
-		try {
-			int errCount = 0;
-			while (!stoped) {
-				_sleep(interval);
-				try {
-					while (queue.size() >= minBatchSize) {
-						List<DATA> datas = new ArrayList<DATA>();
-						while (true) {
-							DATA data = null;
-							if (datas.size() < maxBatchSize && (data = queue.poll()) != null) {
-								datas.add(data);
-							} else {
-								break;
+	private Thread processthread = new Thread(new Runnable() {
+		@Override
+		public void run() {
+			try {
+				int errCount = 0;
+				while (!stoped) {
+					_sleep(interval);
+					try {
+						while (queue.size() >= minBatchSize) {
+							List<DATA> datas = new ArrayList<DATA>();
+							while (true) {
+								DATA data = null;
+								if (datas.size() < maxBatchSize && (data = queue.poll()) != null) {
+									datas.add(data);
+								} else {
+									break;
+								}
 							}
+							_process(datas);
+							errCount = 0;
 						}
-						_process(datas);
-						errCount = 0;
-					}
-					_wait();
-				} catch (Exception e) {
-					logger.error("处理数据异常!", e);
-					errCount++;
-					if (errCount >= errLimit) {
-						_sleep(errSleepSeconds);
+					} catch (Exception e) {
+						logger.error("处理数据异常!", e);
+						errCount++;
+						if (errCount >= errLimit) {
+							_sleep(errSleepSeconds);
+						}
 					}
 				}
+			} catch (InterruptedException e) {
+				logger.error("队列任务执行异常!", e);
 			}
-		} catch (Exception e) {
-			logger.error("队列任务执行异常!", e);
 		}
-	}
+	});
 
 	private void _process(final List<DATA> datas) {
 		if (datas != null && !datas.isEmpty()) {
@@ -97,22 +98,18 @@ public class QueueTask<DATA> extends Thread {
 		}
 	}
 
-	private synchronized void _wait() {
-		try {
-			this.wait();
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
+	private void _sleep(long seconds) throws InterruptedException {
+		if (paused) {
+			synchronized (processthread) {
+				processthread.wait();
+			}
+		} else if (seconds > 0) {
+			Thread.sleep(1000 * seconds);
 		}
 	}
 
-	private static void _sleep(long seconds) {
-		try {
-			if (seconds > 0) {
-				Thread.sleep(1000 * seconds);
-			}
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
+	public void start() {
+		processthread.start();
 	}
 
 	/**
@@ -120,9 +117,9 @@ public class QueueTask<DATA> extends Thread {
 	 */
 	public void restart() {
 		if (paused) {
-			synchronized (this) {
+			synchronized (processthread) {
 				paused = false;
-				this.notify();
+				processthread.notify();
 			}
 		}
 	}
@@ -133,7 +130,6 @@ public class QueueTask<DATA> extends Thread {
 	public void pause() {
 		if (!paused) {
 			paused = true;
-			_wait();
 		}
 	}
 
@@ -161,11 +157,10 @@ public class QueueTask<DATA> extends Thread {
 	 * @param data 待处理数据对象
 	 * @return boolean
 	 */
-	public synchronized boolean add(DATA data) {
+	public boolean add(DATA data) {
 		boolean result = false;
 		if (!stoped && !paused) {
 			result = queue.add(data);
-			this.notify();
 		}
 		return result;
 	}
@@ -310,13 +305,13 @@ public class QueueTask<DATA> extends Thread {
 			}
 		};
 
-		QueueTask<Long> tastTask = Builder.start(Long.class).handler(handler).interval(1).minBatchSize(3).maxBatchSize(5).build();
+		QueueTask<Long> tastTask = Builder.start(Long.class).handler(handler).interval(3).maxBatchSize(5).build();
 		tastTask.start();
 
 		while (true) {
-			Thread.sleep(2000);
-			for (int i = 0; i < 10; i++) {
-				tastTask.add(System.currentTimeMillis() + i);
+			Thread.sleep(300);
+			for (int i = 0; i < 3; i++) {
+				tastTask.add(System.currentTimeMillis() );
 			}
 		}
 	}
